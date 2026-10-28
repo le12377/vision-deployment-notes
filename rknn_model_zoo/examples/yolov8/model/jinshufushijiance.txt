@@ -1,0 +1,4 @@
+general_corrosion  
+pitting_corrosion 
+uniform_corrosion  
+crevice_corrosion

@@ -1,0 +1,2 @@
+ls /home/lsf/桌面/视觉/rknn/rknn_model_zoo/datasets/COCO/image/*.jpg > coco_subset_20.txt
+
