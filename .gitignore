@@ -13,3 +13,4 @@ runs/
 *.log
 /rknn-toolkit2/
 /rknn_model_zoo/
+/models/
