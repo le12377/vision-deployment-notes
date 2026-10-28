@@ -25,3 +25,10 @@ runs/
 /rknn_model_zoo/examples/lite_transformer/model/*embed.bin
 **/haarcascades/*.xml
 **/lbpcascades/*.xml
+/rknn_model_zoo/datasets/COCO/image*/
+/rknn_model_zoo/datasets/COCO/subset*/
+/rknn_model_zoo/datasets/COCO/三角洲11/
+/rknn_model_zoo/datasets/COCO/使命召唤12/
+/rknn_model_zoo/datasets/COCO/守望先锋ow8/
+/rknn_model_zoo/datasets/COCO/远光13/
+/rknn_model_zoo/datasets/COCO/逆站1/

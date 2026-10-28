@@ -101,7 +101,7 @@ python convert.py "$VISION_ROOT/models/yolov8n.onnx" rk3588 fp "$VISION_ROOT/mod
 test -s "$VISION_ROOT/models/yolov8n.rknn"
 ```
 
-Model Zoo 直接使用仓库内这份本机修改版源码；主机 Toolkit2 安装包仍从官方 v2.3.2 取得，因为 `rknn_api` 里包含的是板端 Lite2 和 Runtime。首次使用非量化 `fp`，不需要校准数据。INT8 是后续选项：把 `fp` 改为 `i8`，并将 `DATASET_PATH` 改成实际校准图像列表。
+Model Zoo 直接使用仓库内这份本机修改版源码；主机 Toolkit2 安装包仍从官方 v2.3.2 取得，因为 `rknn_api` 里包含的是板端 Lite2 和 Runtime。首次使用非量化 `fp`，不需要校准数据。COCO 下的图片目录及其旧校准列表已移除；INT8 是后续选项，需自行准备校准图片与列表，把 `fp` 改为 `i8`，并将 `DATASET_PATH` 改成实际校准图像列表。
 
 先在板卡完成第 5 步，让 SSH 可用、项目目录建立起来。再回到**主机**传输，下面提示输入的是板卡登录用户名和 IP，不是 GitHub 账号：
 
