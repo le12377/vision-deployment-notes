@@ -1,0 +1,8 @@
+train: ../dataset/images/train
+val: ../dataset/images/val
+test: ../dataset/images/test
+
+nc: 7
+
+# Classes
+names: ['car','blockhouse','H','bridge','tent','tank','redten']

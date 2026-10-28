@@ -1,0 +1,31 @@
+description: Ultralytics D:\YOLOV10\YOLOv10-main\ultralytics\cfg\models\v10\YOLOv10n
+  model trained on D:\YOLOV10\yolov10-main\datazengqiang.yaml
+author: Ultralytics
+date: '2026-08-17T17:05:27.833906+08:00'
+version: 8.4.120
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+head: v10Detect
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: class1
+  1: class2
+  2: class3
+  3: class4
+  4: class5
+  5: class6
+args:
+  data: null
+  batch: 1
+  name: rk3588
+  fraction: 1.0
+  quantize: 16
+  simplify: true
+  opset: 13
+channels: 3
+end2end: false

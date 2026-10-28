@@ -1,5 +1,6 @@
 .omx/
 __pycache__/
+.pytest_cache/
 *.py[cod]
 .venv/
 .env
@@ -7,6 +8,8 @@ __pycache__/
 *.pt
 *.onnx
 *.rknn
-datasets/
+/datasets/
 runs/
 *.log
+/rknn-toolkit2/
+/rknn_model_zoo/

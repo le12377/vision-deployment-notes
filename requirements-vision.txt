@@ -1,0 +1,11 @@
+# 当前 deeplearning 环境中已检测到的视觉/导出依赖。
+# PyTorch 和 torchvision 按 README 第 1 步安装。
+numpy==1.26.4
+opencv-python==4.11.0.86
+onnx==1.17.0
+onnxsim==0.4.36
+onnxslim==0.1.82
+onnxruntime==1.16.3
+polars==1.35.2
+labelImg==1.8.6
+PyYAML==6.0.2
