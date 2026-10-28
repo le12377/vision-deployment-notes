@@ -1,0 +1,12 @@
+.omx/
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+*.pt
+*.onnx
+*.rknn
+datasets/
+runs/
+*.log
