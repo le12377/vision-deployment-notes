@@ -13,7 +13,7 @@
 | Ultralytics / RKNN-Toolkit2 | 8.4.120 / 2.3.2 |
 | NumPy / OpenCV / ONNX | 1.26.4 / 4.11.0.86 / 1.17.0 |
 
-本仓库带入了我的训练、转换和输出修改源码，保留 `train.py`、`data.yaml`；不带数据集、模型权重和训练结果。
+本仓库带入了我的训练、转换和输出修改源码，保留完整 `ultralytics/` 包、`train.py`、`data.yaml` 及自用检测/导出入口；不带数据集、模型权重和训练结果。
 
 ## 1. 下载 Miniconda，创建 deeplearning 环境
 
@@ -46,6 +46,8 @@ python train.py
 ```
 
 我的 `train.py` 默认 YOLOv8、640 输入、200 epochs、batch 16、SGD、GPU 0；数据配置目前为 7 类，需要改成自己的数据。预训练 `yolov8n.pt` 自行下载或使用框架自动下载。
+
+自用的 `detect.py`、`detect_ocr.py`、`convert.py` 也已保留；运行前修改各自的模型和图像路径，OCR 入口另外需要 PaddleOCR/PaddlePaddle。
 
 YOLOv5 源码在 `train/yolov5/`，使用时安装其依赖，并指定自己的数据配置：
 
