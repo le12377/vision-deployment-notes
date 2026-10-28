@@ -10,7 +10,7 @@
 | 板卡（用户提供） | 香橙派 5 Max，RK3588，Ubuntu 20.04.6 aarch64 |
 | 板卡 Python / ROS | 系统 Python 3.8，ROS1 Noetic，Lite2 / Runtime 2.3.2 |
 
-本仓库带入了我的完整训练包、`train.py`、`data.yaml`、`convert/` 和输出修改项目，不带权重、数据集和训练结果。以下命令以 Bash 为例，主机和板卡均把项目放在 `$HOME/vision-deployment-notes`。
+本仓库带入了我的完整训练包、`train.py`、`data.yaml`、`convert/` 和输出修改项目，并收录本机提供的 [rknn_api](rknn_api) 与 [rknn_model_zoo](rknn_model_zoo) 的源码、安装包、运行库及示例数据，**不上传模型权重或导出的模型文件**。主机和板卡各克隆本仓库即可取得这些依赖，无需再单独克隆板端 SDK 或 Model Zoo；两个目录的非模型文件约 1.5 GiB，首次克隆需要相应空间。以下命令以 Bash 为例，项目均放在 `$HOME/vision-deployment-notes`。
 
 ## 1. 主机：安装 Miniconda 和基础视觉环境
 
@@ -96,13 +96,12 @@ models/yolov8n.json   # 自动记录类别、输入尺寸和输出数量
 cd "$VISION_ROOT"
 git clone --branch v2.3.2 --depth 1 https://github.com/airockchip/rknn-toolkit2.git
 python -m pip install rknn-toolkit2/rknn-toolkit2/packages/x86_64/rknn_toolkit2-2.3.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
-git clone --branch v2.3.2 --depth 1 https://github.com/airockchip/rknn_model_zoo.git
 cd "$VISION_ROOT/rknn_model_zoo/examples/yolov8/python"
 python convert.py "$VISION_ROOT/models/yolov8n.onnx" rk3588 fp "$VISION_ROOT/models/yolov8n.rknn"
 test -s "$VISION_ROOT/models/yolov8n.rknn"
 ```
 
-首次使用非量化 `fp`，不需要校准数据。INT8 是后续选项：把 `fp` 改为 `i8`，并将 `DATASET_PATH` 改成实际校准图像列表。两个第三方项目均固定在 v2.3.2，与本机 Toolkit2 对齐。
+Model Zoo 直接使用仓库内这份本机修改版源码；主机 Toolkit2 安装包仍从官方 v2.3.2 取得，因为 `rknn_api` 里包含的是板端 Lite2 和 Runtime。首次使用非量化 `fp`，不需要校准数据。INT8 是后续选项：把 `fp` 改为 `i8`，并将 `DATASET_PATH` 改成实际校准图像列表。
 
 先在板卡完成第 5 步，让 SSH 可用、项目目录建立起来。再回到**主机**传输，下面提示输入的是板卡登录用户名和 IP，不是 GitHub 账号：
 
@@ -131,8 +130,7 @@ git clone https://github.com/le12377/vision-deployment-notes.git
 export VISION_ROOT="$HOME/vision-deployment-notes"
 cd "$VISION_ROOT"
 mkdir -p models
-git clone --branch v2.3.2 --depth 1 https://github.com/airockchip/rknn-toolkit2.git
-cd "$VISION_ROOT/rknn-toolkit2"
+cd "$VISION_ROOT/rknn_api"
 /usr/bin/python3 -m pip install --user numpy==1.24.4 opencv-python==4.11.0.86
 PY_TAG=$(/usr/bin/python3 -c 'import sys; print("cp%d%d" % sys.version_info[:2])')
 /usr/bin/python3 -m pip install --user rknn-toolkit-lite2/packages/*-"${PY_TAG}"-*.whl
@@ -143,7 +141,7 @@ sudo ldconfig
 /usr/bin/python3 -c 'import cv2, numpy, rospy; from rknnlite.api import RKNNLite; print("依赖导入 OK")'
 ```
 
-系统 Python 3.8 选择 `cp38`；上面的命令按实际 Python 自动匹配，不能安装主机的 x86_64 wheel。完成后回到主机执行第 4 步的传输命令。
+Lite2 wheel、`librknnrt.so` 和 `rknn_server` 都已随 `rknn_api/` 提供，板卡无需再下载完整 SDK。系统 Python 3.8 选择 `cp38`；上面的命令按实际 Python 自动匹配，不能安装主机的 x86_64 wheel。完成后回到主机执行第 4 步的传输命令。
 
 ## 6. 板卡：启动 ROS，检查设备，再运行 v888_basic.py
 

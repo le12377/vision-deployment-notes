@@ -67,7 +67,7 @@ grep -qxF 'source /opt/ros/noetic/setup.bash' "$HOME/.bashrc" || \
 
 ## 4. 安装 Lite2 与 Runtime
 
-回到 [README 第 5 步](../README.md#board-install)，安装匹配 Python 的 Lite2 wheel，并复制对应的 `lib/bin`。Python 3.8 的 NumPy 使用 `1.24.4`；不要直接安装只支持更新 Python 的 NumPy 版本。
+回到 [README 第 5 步](../README.md#board-install)，直接使用克隆后 `rknn_api/` 下的 Lite2 wheel 和 Linux Runtime，安装匹配 Python 的包，并复制对应的 `lib/bin`，无需另外克隆 SDK。Python 3.8 的 NumPy 使用 `1.24.4`；不要直接安装只支持更新 Python 的 NumPy 版本。
 
 安装后至少检查：
 
