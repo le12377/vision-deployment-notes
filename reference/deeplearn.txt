@@ -1,9 +1,0 @@
-下载minconda
-conda create -n deeplearning python=3.9 pytorch torchvision torchaudio pytorch-cuda -c pytorch -c nvidia
-pip install labelimg -i https://pypi.tuna.tsinghua.edu.cn/simple
-git clone https://github.com/ultralytics/ultralytics.git
-
-rknpu:
-     /usr/lib  sudo cp 源文件路径 目标路径
-     /usr/bin
-model-zoo  cp38依赖

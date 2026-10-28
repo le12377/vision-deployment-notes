@@ -67,7 +67,7 @@ cd "$VISION_ROOT/train/ultralytics"
 python train.py
 ```
 
-我的默认参数是 YOLOv8、640 输入、200 epochs、batch 16、SGD、GPU 0。当前 `data.yaml` 是自用 7 类数据配置，并不包含实际图像/标注。训练完成后把实际 `best.pt` 复制到 `models/`，第 3 步的 `--weights` 改为该文件即可；类别会自动随模型导出。
+我的默认参数是 YOLOv8、640 输入、200 epochs、batch 16、SGD、GPU 0。当前 `data.yaml` 是自用 7 类数据配置，并不包含实际图像/标注。训练完成后把实际 `best.pt` 复制到 `models/`，第 3 步的模型路径改为该文件，第 6 步的类别按训练顺序填写。
 
 [train/yolov5](train/yolov5) 也带入了本机源码，按其 `requirements.txt` 安装依赖，运行 `train.py --data` 指定自己的数据配置。自用 `detect.py`、`detect_ocr.py`、`convert.py` 均保留；OCR 额外需要 PaddleOCR/PaddlePaddle。
 
@@ -77,15 +77,22 @@ python train.py
 
 ```bash
 export VISION_ROOT="$HOME/vision-deployment-notes"
-cd "$VISION_ROOT"
-python scripts/export_yolov8.py --weights "$VISION_ROOT/models/yolov8n.pt" --imgsz 640
+cd "$VISION_ROOT/convert/yolov8_p-o"
+PYTHONPATH=. python - <<'PY'
+import os
+from pathlib import Path
+from ultralytics import YOLO
+
+model = YOLO(str(Path(os.environ["VISION_ROOT"]) / "models/yolov8n.pt"))
+model.export(format="rknn", imgsz=640, device="cpu")
+print("模型类别顺序:", model.names)
+PY
 ```
 
-脚本实际调用 `convert/yolov8_p-o` 的优化版导出，使用 `format=rknn` 产生 **ONNX**，并核对 9 输出；它不使用普通 Ultralytics 的 ONNX 导出替代优化项目。输出为：
+这里直接调用 `convert/yolov8_p-o` 的优化版导出，使用 `format=rknn` 产生 **ONNX**，默认使用 9 输出。输出为：
 
 ```text
 models/yolov8n.onnx   # RKNN 友好输出结构
-models/yolov8n.json   # 自动记录类别、输入尺寸和输出数量
 ```
 
 也可进入优化项目，修改 `ultralytics/cfg/default.yaml` 的模型路径/输入尺寸、保留 `format: rknn`，执行 `PYTHONPATH=. python ultralytics/engine/exporter.py`。首次按上面的命令走即可。
@@ -109,7 +116,7 @@ Model Zoo 直接使用仓库内这份本机修改版源码；主机 Toolkit2 安
 read -rp '板卡登录用户名: ' BOARD_USER
 read -rp '板卡 IP（板卡运行 hostname -I 查看）: ' BOARD_IP
 ssh "${BOARD_USER}@${BOARD_IP}" 'mkdir -p "$HOME/vision-deployment-notes/models"'
-scp "$VISION_ROOT/models/yolov8n.rknn" "$VISION_ROOT/models/yolov8n.json" \
+scp "$VISION_ROOT/models/yolov8n.rknn" \
   "${BOARD_USER}@${BOARD_IP}:vision-deployment-notes/models/"
 sha256sum "$VISION_ROOT/models/yolov8n.rknn"
 ```
@@ -120,7 +127,7 @@ sha256sum "$VISION_ROOT/models/yolov8n.rknn"
 
 ## 5. 板卡：准备系统、ROS、Lite2 和 lib/bin
 
-**先完成 [香橙派 5 Max 系统、驱动、ROS 和摄像头准备](docs/board-setup.md)**，其中给出了基础工具、ROS Noetic 安装和 NPU 驱动检查命令。本流程以已有匹配 RKNPU 驱动的 Ubuntu 20.04.6 镜像为前提；用户态 `.so` 不能替代内核驱动。
+板卡使用带匹配 RKNPU 驱动的 Ubuntu 20.04.6，并先安装 ROS Noetic、Git、Python3 pip、OpenSSH。需要无显示器运行时还应安装 `xvfb`、`xauth`。用户态 `.so` 不能替代内核驱动。
 
 然后在**板卡**执行；后续统一用系统 `/usr/bin/python3`：
 
@@ -153,13 +160,12 @@ git clone https://github.com/zdongdong12311-a11y/rknn_yolov8-ros1.git
 cd "$HOME/rknn_yolov8-ros1"
 git checkout 69e6ace08d606600563c66027e5840d837aac102
 export VISION_ROOT="$HOME/vision-deployment-notes"
-/usr/bin/python3 "$VISION_ROOT/scripts/configure_v888.py" \
-  --script "$HOME/rknn_yolov8-ros1/multi_threaded-python-v8_ros_pub/v888_basic.py" \
-  --model "$VISION_ROOT/models/yolov8n.rknn" \
-  --metadata "$VISION_ROOT/models/yolov8n.json" --camera 0
+mkdir -p "$HOME/rknn_yolov8-ros1/multi_threaded-python-v8_ros_pub/model"
+cp "$VISION_ROOT/models/yolov8n.rknn" \
+  "$HOME/rknn_yolov8-ros1/multi_threaded-python-v8_ros_pub/model/yolov8n.rknn"
 ```
 
-实际文件名是 `v888_basic.py`。配置脚本根据随模型传来的 JSON 自动设置模型绝对路径、`IMG_SIZE` 和 `CLASSES`，首次保留 `.py.bak` 备份；摄像头不是 0 时改 `--camera`。
+实际文件名是 `v888_basic.py`。首次示例使用脚本默认的 `MODEL_PATH='./model/yolov8n.rknn'`、`IMG_SIZE=(640,640)`、80 类 COCO 和摄像头 0。使用自训模型时，手动修改 `MODEL_PATH`、`IMG_SIZE`、`CLASSES`；类别必须与训练顺序一致，摄像头不是 0 时修改 `cv2.VideoCapture(0)`。
 
 **板卡终端 A：启动 ROS Master，保持运行。**
 
@@ -169,20 +175,19 @@ export ROS_MASTER_URI=http://127.0.0.1:11311
 roscore
 ```
 
-**板卡终端 B：预检并推理。**
+**板卡终端 B：运行推理。**
 
 ```bash
 source /opt/ros/noetic/setup.bash
 export ROS_MASTER_URI=http://127.0.0.1:11311
 export VISION_ROOT="$HOME/vision-deployment-notes"
-/usr/bin/python3 "$VISION_ROOT/scripts/check_board.py" --model "$VISION_ROOT/models/yolov8n.rknn" --camera 0
 cd "$HOME/rknn_yolov8-ros1/multi_threaded-python-v8_ros_pub"
 /usr/bin/python3 v888_basic.py
 ```
 
-预检应依次显示 ROS Master、模型加载/NPU 初始化和摄像头取帧成功。有图形桌面时，在板卡桌面终端运行最后一条命令；它会打开实时检测窗口。
+启动时应显示三个 `[Worker-*] init OK`，表示各推理线程已加载模型并初始化 NPU。有图形桌面时，在板卡桌面终端运行最后一条命令；它会打开实时检测窗口。
 
-**只有 SSH、没有显示器：** 预检通过后，用这条命令替代上面的最后一条：
+**只有 SSH、没有显示器：** 用这条命令替代上面的最后一条：
 
 ```bash
 xvfb-run -a -s '-screen 0 1920x1080x24' /usr/bin/python3 v888_basic.py
@@ -219,4 +224,4 @@ python3 export.py "$VISION_ROOT/models/yolov8n.onnx" 9
 
 ---
 
-主机环境来自实际检测，板卡型号/系统由用户提供。本次已在主机实际跑通 YOLOv8n 的 PT → 640 输入/9 输出 ONNX → RK3588 FP RKNN，配置脚本也已用上游推理源码验证。安装说明中的板卡命令没有在远程板卡执行；板端驱动、摄像头和完整推理需在目标板卡按预检实际确认。源码保留各项目原许可证。
+主机环境来自实际检测，板卡型号/系统由用户提供。已在主机实际跑通 YOLOv8n 的 PT → 640 输入/9 输出 ONNX → RK3588 FP RKNN；板卡命令未在远程设备执行，板端驱动、摄像头和完整推理需在目标板卡确认。源码保留各项目原许可证。
